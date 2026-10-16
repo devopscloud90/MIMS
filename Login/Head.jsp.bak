@@ -1,0 +1,40 @@
+<%@page session="false" import="java.util.Calendar,mims.beans.UserBean"%>
+<%
+ HttpSession session = request.getSession(false);
+ if(session!=null)
+ {
+  %>
+  <script type="text/javaScript1.2">
+   setInterval("settime()", 1000);
+   function settime () {
+    var curtime = new Date();
+    var curhour = curtime.getHours();
+    var curmin = curtime.getMinutes();
+    var cursec = curtime.getSeconds();
+    var time = ""; 
+    if(curhour == 0) curhour = 12;
+    time = (curhour > 12 ? curhour - 12 : curhour) + ":" + (curmin < 10 ? "0" : "") + curmin + ":" 
+		 +(cursec < 10 ? "0" : "") + cursec + " " + (curhour >= 12 ? "AM" : "PM");
+    document.getElementById('clock').value = time;
+   }
+  </script>
+  <table width="100%" border="0">
+   <tr>
+     <td width="88%" align="center">
+      <img src="/MIMS/Images/Title.jpg"/><br />
+      <%
+       String id = (String)session.getAttribute("id");
+       if(id!=null){
+	     UserBean user = new UserBean(id);
+         out.println("Logged in as <font class='user'>"+user.getName()+"</font>");
+       }
+	  %>
+     </td>
+     <td align="right">
+       <input type="text" class="user" id="clock" size="10" value="">
+       <br/>
+	   <a href="/MIMS/Login/Welcome.jsp" target="result">HOME</a> | <a href="/MIMS/Login/Logout.jsp">LOGOUT</a>
+     </td>
+   </tr>
+  </table>
+ <%}%>

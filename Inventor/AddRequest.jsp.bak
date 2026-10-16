@@ -1,0 +1,129 @@
+<%@page session="false" import="java.util.*,mims.beans.*,java.sql.*"%>
+<head>
+ <link href="/MIMS/CSS/styles.css" type="text/css" rel="stylesheet">
+ <script type="text/javascript" src="/MIMS/Scripts/validate.js"></script>
+ <script type="text/javascript">
+  function validate(){
+   var uid = document.getElementById("UserId");
+   var pwd = document.getElementById("Password");
+   var phone=document.Frm.phno.value;
+   var emailid=document.getElementById("emil");
+     if(!isEmpty(uid))
+	 if(!isEmpty(pwd))
+		 if(ValidaeEmail(emilid))
+		return true;
+	 if(val=="")
+	{
+		 alert("Email id should not be empty");
+	}
+	/*if(phone==0){
+	alert("Please enter a valid 10-digit mobile number.");
+	document.Frm.phno.focus();
+   return false;*/
+   else if(phone.length<10){
+	alert("Please enter a valid 10-digit mobile number.");
+	document.Frm.phno.focus();
+	return false; }
+	
+  }
+
+ </script>
+ 
+<title>..::Micro-Inventions Management System::..</title>
+</head>
+<body class="SC" onload="document.getElementById('UserId').focus();">
+<table width="100%" height="100%">
+<tr class="SC">
+  <td width="88%" align="center"><img src="/MIMS/Images/Title.jpg"/></td>
+  <td width="12%" align="right"><a href="/MIMS/Login/Login.jsp">Login</a></td>
+</tr>
+<tr class="BD">
+<td height="82%" colspan="2">
+<center>
+ <form action="AddRequest.jsp" method="post" name="frm" onsubmit="return validate()">
+  <table align="center" cellspacing="10pt" cellspacing="10pt">
+  <tr>
+    <th colspan = "2" align="center" class="labeltext">
+      Fill Your Details
+    </th>
+  </tr>
+  
+  <tr>
+     <td>Request Id (System Generated)</td><td><input type="text" name="userid" id="userid" readonly='readonly' value="<%=RequestBean.generateId()%>"></td>
+  </tr>
+
+  <tr>
+     <td>Name</td><td><input type="text" name="name" id="name" placeholder="Name" required/></td>
+  </tr>
+
+  <tr>
+     <td>Phone Number</td><td><input type="text" name="phno" id="phno" maxlength="10" placeholder="Phone Number" onkeydown="return allowNumeric(event)" required/></td>
+  </tr>
+
+  <tr>
+     <td>Email</td><td><input type="email" name="email" id="email" placeholder="Email" /></td>
+  </tr>
+
+  <tr>
+     <td>Address</td><td><textarea name="address" id="address" placeholder="Address" rows="3" cols="20" required/></textarea></td>
+  </tr>
+
+  <tr>
+    <td>Domain</td>
+    <td>
+      <select name="doid" id="doid" required/>
+        <option value="">---Select---</option>
+        <%
+	      ArrayList<String> domains = DomainBean.getAllObjects();
+          if(domains!=null){
+	       for(String id:domains){
+	 	     DomainBean domain = new DomainBean(id);%>			  
+			 <option value="<%=id%>"><%=domain.getName()%></option>
+	       <%}
+		  }
+		 %>
+      </select>
+    </td>
+  </tr>
+
+  <tr align = "center">
+    <td><input type="submit" name="ok" id="ok"  value="REQUEST" class="Button"/></td>
+    <td><input type="reset" name="clear" id="clear"  value="CLEAR" class="Button"/></td>
+  </tr>
+
+  </table>
+ </form>
+<%
+  String userid = request.getParameter("userid");
+  String name = request.getParameter("name");
+  String phno = request.getParameter("phno");
+  String email = request.getParameter("email");
+  String address = request.getParameter("address");
+  String doid = request.getParameter("doid");
+  String msg = request.getParameter("msg");
+  String button = request.getParameter("ok");
+  if("REQUEST".equals(button)){
+	Statement stmt = DBUtil.createStatement("");
+	int n = stmt.executeUpdate("insert into requests values("+userid+",'"+name+"','"+phno+"','"+email+"','"+address+"','"+doid+"','','','','New','')");
+	if(n==1){
+	 %>
+	  <jsp:forward page="AddRequest.jsp">
+	    <jsp:param name="msg" value="Success"/>
+		<jsp:param name="ok" value=""/>
+	  </jsp:forward>
+    <%}else{%>
+      <jsp:forward page="AddRequest.jsp">
+	    <jsp:param name="msg" value="Failed" />
+    	<jsp:param name="ok" value=""/>
+	  </jsp:forward>
+    <%}
+  }
+   if("Success".equals(msg)){%>
+      <script>alert("Requested Successfully");</script>
+   <%}else if ("Failed".equals(msg)){%>
+      <script>alert("Request Failed");</script>
+  <%}%>
+</center>
+</td></tr>
+</table>
+</body>

@@ -1,0 +1,62 @@
+<%@page session="false" language="java"%>
+<head>
+ <link href="/MIMS/CSS/styles.css" type="text/css" rel="stylesheet">
+ <script type="text/javascript" src="/MIMS/Scripts/validate.js"></script>
+ <script type="text/javascript">
+  function validate(){
+   var uid = document.getElementById("UserId");
+   var pwd = document.getElementById("Password");
+   if(!isEmpty(uid))
+	if(!isEmpty(pwd))
+	 return true;
+   return false;
+  }
+ </script>
+<title>..::Micro-Inventions Management System::..</title>
+</head>
+<body class="SC" onload="document.getElementById('UserId').focus();">
+<table width="100%" height="100%">
+<tr class="SC">
+  <td width="88%" align="center"><img src="/MIMS/Images/Title.jpg"/></td>
+  <td width="12%" align="right"><a href="/MIMS/Inventor/AddRequest.jsp">Invention Request</a></td>
+</tr>
+<tr class="BD">
+<td height="82%" colspan="2">
+<center>
+<form id="loginfrm" method="POST" action="/MIMS/login" onsubmit="return validate()">
+<table border="0" cellpadding="5" cellspacing="5">
+<tr>
+  <th colspan="2">Enter Details for Login <br /><br /></th>
+</tr>
+<tr>
+  <td align="right">User ID : </td>
+  <td align="left"><input type="text" name="UserId" id="UserId"/></td>
+</tr>
+<tr><td></td><td><div id="UserIdError" class="error"></div></td></tr>
+<tr>
+  <td align="right">Password : </td>
+  <td align="left"><input type="password" name="Password" id="Password"/></td>
+</tr>
+<tr><td></td><td><div id="PasswordError" class="error"></div></td></tr>
+<tr>
+  <td align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" name="ok" id="ok" value="Login"/></td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <td align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="reset" name="cancel" id="cancel" value="Clear"/></td>
+</tr>
+</table>
+<h2>
+<%
+  String error = request.getParameter("error");
+  String success = request.getParameter("success");
+  String auth = request.getParameter("auth");
+  if(error!=null)
+   out.println("<h2 class=\"err\">"+error+"</h2>");
+  else if(success!=null)
+   out.println("<h2 class=\"suc\">"+success+"</h2>");
+  else if(auth!=null)
+   out.println("<h2 class=\"auth\">"+auth+"</h2>");
+%>
+</h2>
+</center>
+</td></tr>
+</table>
+</body>

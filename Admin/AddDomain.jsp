@@ -1,0 +1,86 @@
+<%@page session="false" import="mims.beans.*,java.sql.*"%>
+<%
+ HttpSession session = request.getSession(false);
+ if(session!=null){
+   %>
+   <head>
+      <LINK href="/MIMS/CSS/styles.css" type="text/css" rel="stylesheet" />
+      <script type="text/javaScript1.2" src="/MIMS/Scripts/validate.js"></script>
+	  <script type="text/javaScript1.2">
+	   function validate(){
+        if(!isEmpty(document.getElementById('doid')))
+         if(!isEmpty(document.getElementById('doname')))
+		   return true;
+	    return false;
+       }
+      </script>
+   </head>
+   <body class="BD">
+   <center>
+    <form onsubmit="return validate()">
+      
+	  <table class="inputform" cellspacing="10pt" cellspacing="10pt">
+      <tr>
+         <th colspan = "2" align="center" class="labeltext">
+            Enter the Domain Information
+         </th>
+      </tr>
+
+      <tr>
+         <td>Domain Id (System Generated)</td>
+         <td>
+		   <input type="text" name="doid" id="doid" readonly='readonly' value="<%=DomainBean.generateId()%>">
+		   <div class="error" id="doidError"></div>
+		 </td>
+      </tr>
+
+      <tr>
+         <td>Domain Name</td>
+         <td><input type="text" name="doname" id="doname"><div class="error" id="donameError"></div></td>
+      </tr>
+
+      <tr>
+         <td>Description</td>
+         <td><input type="text" name="desc" id="desc"></td>
+      </tr>
+
+      <tr align = "center">
+         <td><input type="submit" name="ok" id="ok" value="SAVE" class="Button"></td>
+         <td><input type="reset"  name="cancel" id="cancel" value="CLEAR" class="Button"></td>
+      </tr>
+
+      </table>
+    </form>
+    <%
+      String id = request.getParameter("doid");
+      String name = request.getParameter("doname");
+	  String desc = request.getParameter("desc");
+      String button = request.getParameter("ok");
+	  String msg = request.getParameter("msg");
+	  if("SAVE".equals(button) && name!=null && !"".equals(name)){
+		PreparedStatement pstmt = DBUtil.prepareStatement("insert into domains values(?,?,?,0,0)");
+		pstmt.setString(1,id);
+		pstmt.setString(2,name);
+        pstmt.setString(3,desc);
+	    int n = pstmt.executeUpdate();
+		pstmt.close();
+		if(n>0){%>
+		  <jsp:forward page="AddDomain.jsp">
+		   <jsp:param name="msg" value="Success" />
+           <jsp:param name="doid" value="<%=id%>" />
+		   <jsp:param name="ok" value="" />
+		  </jsp:forward>
+        <%}else{%>
+           <jsp:forward page="AddDomain.jsp">
+		     <jsp:param name="msg" value="Failed" />
+		     <jsp:param name="ok" value="" />
+		   </jsp:forward>
+		<%}
+	  }
+	  if("Success".equals(msg)){%>
+      <script>alert("Domain with id <%=id%> Added Successfully");</script>
+      <%}else if ("Failed".equals(msg)){%>
+      <script>alert("Domain Addition Failed");</script>
+      <%}%>
+ </center></body>
+ <%}%>

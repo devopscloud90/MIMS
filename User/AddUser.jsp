@@ -1,0 +1,130 @@
+<%@page session="false" import="mims.beans.*,java.util.*,java.sql.*"%>
+<%
+  HttpSession session = request.getSession(false);
+  if(session!=null){
+   Integer newid = UserBean.generateId();
+   String msg = request.getParameter("msg");
+   String usertype = request.getParameter("usertype");
+   %>
+  <head>
+    <link href="/MIMS/CSS/styles.css" type="text/css" rel="stylesheet" />    
+    <script LANGUAGE="Javascript" SRC="/MIMS/Scripts/validate.js"></script>
+  </head>
+  <body class="BD">
+  <center>
+  <form action="AddUser.jsp" onsubmit="return validate()">
+  <input type="hidden" name="usertype" id="usertype" value="<%=usertype%>"/>
+  <table align = "center" class="inputform" cellspacing="10pt" cellspacing="10pt">
+  <tr>
+    <th colspan = "2" align="center" class="labeltext">
+      Enter the 
+	  <% if("Advisor".equals(usertype))
+	      out.println(" Advisor ");
+         else
+		  if("Domain Expert".equals(usertype))
+  	       out.println(" Domain Expert ");
+		  else
+           if("Inventor".equals(usertype))
+  	        out.println(" Inventor ");
+      %>
+	  Details
+    </th>
+  </tr>
+  
+  <tr>
+     <td>User Id (System Generated)</td><td><input type="text" name="userid" id="userid" readonly='readonly' value="<%=newid%>"></td>
+  </tr>
+
+  <tr>
+     <td>Name</td><td><input type="text" name="name" id="name" required/></td>
+  </tr>
+
+  <tr>
+     <td>Phone Number</td><td><input type="text" name="phno" id="phno" maxlength="11" onkeydown="return allowNumeric(event)" required/></td>
+  </tr>
+
+  <tr>
+     <td>Email</td><td><input type="email" name="email" id="email" required/></td>
+  </tr>
+
+  <tr>
+     <td>Address</td><td><textarea name="address" id="address" rows="3" cols="20" required/></textarea></td>
+  </tr>
+
+  <tr>
+     <td>Login Id</td><td><input type="text" name="uname" id="uname" required/></td>
+  </tr>
+
+  <tr>
+     <td>Password</td><td><input type="password" name="pwd" id="pwd" required/></td>
+  </tr>
+
+  <tr>
+    <td>Domain</td>
+    <td>
+      <select name="doid" id="doid" style="width:35%" required/>
+        <option value="">---Select---</option>
+        <%
+	      ArrayList<String> domains = DomainBean.getAllObjects();
+          if(domains!=null){
+	       for(String id:domains){
+	 	     DomainBean domain = new DomainBean(id);%>			  
+			 <option value="<%=id%>"><%=domain.getName()%></option>
+	       <%}
+		  }
+		 %>
+      </select>
+    </td>
+  </tr>
+
+  <tr align = "center">
+    <td><input type="submit" name="ok" id="ok"  value="SAVE" class="Button"/></td>
+    <td><input type="reset" name="clear" id="clear"  value="CLEAR" class="Button"/></td>
+  </tr>
+
+  </table>
+  </form>
+<%
+  String userid = request.getParameter("userid");
+  String name = request.getParameter("name");
+  String phno = request.getParameter("phno");
+  String email = request.getParameter("email");
+  String address = request.getParameter("address");
+  String uname = request.getParameter("uname");
+  String pwd = request.getParameter("pwd");
+  usertype = request.getParameter("usertype");
+  String doid = request.getParameter("doid");
+  String button = request.getParameter("ok");
+  if("SAVE".equals(button)){
+	Statement stmt = DBUtil.createStatement("");
+	stmt.addBatch("insert into userdetails values("+userid+",'"+name+"','"+phno+"','"+email+"','"+address+"')");
+  	stmt.addBatch("insert into logindetails values("+userid+",'"+uname+"','"+pwd+"','"+pwd+"','','"+usertype+"','"+doid+"','','','Active')");
+	int n[] = stmt.executeBatch();
+	if(n.length!=0 && n.length==2){
+	  DomainBean bean = new DomainBean(doid);
+	  if(usertype.equals("Advisor")){
+        bean.updateAdvisorsCount("increment");
+	  }else if(usertype.equals("Domain Expert")){
+        bean.updateExpertsCount("increment");
+	  }
+	 %>
+	  <jsp:forward page="AddUser.jsp">
+	    <jsp:param name="msg" value="Success"/>
+		<jsp:param name="usertype" value="<%=usertype%>"/>
+		<jsp:param name="ok" value=""/>
+	  </jsp:forward>
+    <%}else{%>
+      <jsp:forward page="AddUser.jsp">
+	    <jsp:param name="msg" value="Failed" />
+		<jsp:param name="usertype" value="<%=usertype%>" />
+    	<jsp:param name="ok" value=""/>
+	  </jsp:forward>
+    <%}
+  }
+   if("Success".equals(msg)){%>
+      <script>alert("User Created Successfully");</script>
+   <%}else if ("Failed".equals(msg)){%>
+      <script>alert("User Creation Failed");</script>
+  <%}%>
+  </center></body>
+<%}%>

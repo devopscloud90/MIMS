@@ -1,0 +1,35 @@
+<%@page session="false" import="java.util.Calendar,mims.beans.UserBean"%>
+<%
+HttpSession session = request.getSession(false);
+if(session!=null)
+{
+%>
+ <html>
+ <head>
+  <link href="/MIMS/CSS/styles.css" type="text/css" rel="stylesheet">
+  <script type="text/javaScript1.2" src="/MIMS/Scripts/coolfunctions.js"></script>
+ </head>
+ <body class="BD">
+ <%
+  String id = (String)session.getAttribute("id");
+  if(id!=null){
+    UserBean user = new UserBean(id);
+	String userType = user.getUserType(); 
+    if(userType.equals("Admin")){%>
+      <script language="JavaScript1.2" src="/MIMS/Scripts/coolmenus1.js"></script>
+	<%}else if(userType.equals("Advisor")){%>
+      <script language="JavaScript1.2" src="/MIMS/Scripts/coolmenus2.js"></script>
+  <%}else if(userType.equals("Inventor")){%>
+      <script language="JavaScript1.2" src="/MIMS/Scripts/coolmenus3.js"></script>
+  <%}else if(userType.equals("Domain Expert")){%>
+      <script language="JavaScript1.2" src="/MIMS/Scripts/coolmenus4.js"></script>
+  <%}
+  }%>
+ </body>
+ </html>
+ <%
+ }else{%>
+  <jsp:forward page="Login.jsp">
+   <jsp:param name="error" value="Session has expired" />
+  </jsp:forward>
+<%}%>
