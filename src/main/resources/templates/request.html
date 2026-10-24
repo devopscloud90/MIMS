@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIMS - Submit an invention request</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="login-page">
+<main class="login-shell">
+    <a th:href="@{/login}">Back to sign in</a>
+    <span class="eyebrow">MIMS</span>
+    <h1>Submit an invention request</h1>
+    <p class="login-intro">Share your contact details and choose the invention domain.</p>
+
+    <p class="suc" th:if="${submitted}">Your request was submitted successfully.</p>
+
+    <form class="login-form" th:action="@{/request}" th:object="${request}" method="post">
+        <label class="login-field" for="name">Name
+            <input id="name" type="text" th:field="*{name}" maxlength="200" required>
+            <span class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+        </label>
+        <label class="login-field" for="phoneNumber">Phone number
+            <input id="phoneNumber" type="tel" th:field="*{phoneNumber}" maxlength="30" required>
+            <span class="error" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></span>
+        </label>
+        <label class="login-field" for="email">Email
+            <input id="email" type="email" th:field="*{email}" maxlength="254" required>
+            <span class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+        </label>
+        <label class="login-field" for="address">Address
+            <textarea id="address" th:field="*{address}" maxlength="4000" required></textarea>
+            <span class="error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></span>
+        </label>
+        <label class="login-field" for="domainId">Domain
+            <select id="domainId" th:field="*{domainId}" required>
+                <option value="">Choose a domain</option>
+                <option th:each="domain : ${domains}" th:value="${domain.id}" th:text="${domain.name}"></option>
+            </select>
+            <span class="error" th:if="${#fields.hasErrors('domainId')}" th:errors="*{domainId}"></span>
+        </label>
+        <div class="login-actions">
+            <button type="submit">Submit request</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

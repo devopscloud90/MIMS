@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIMS - Sign in</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="login-page">
+<header class="login-topbar">
+    <a class="app-brand" th:href="@{/login}">
+        <span class="app-brand-mark" aria-hidden="true">M</span>
+        <span>MICRO-INVENTIONS<br>MANAGEMENT SYSTEM</span>
+    </a>
+    <a th:href="@{/request}">Submit an invention request</a>
+</header>
+
+<main class="login-shell">
+    <span class="eyebrow">Welcome to MIMS</span>
+    <h1>Sign in to your account</h1>
+    <p class="login-intro">Access your workspace to manage inventions, reviews, and requests.</p>
+
+    <form class="login-form" th:action="@{/login}" method="post">
+        <label class="login-field" for="userId">
+            User ID
+            <input type="text" id="userId" name="userId" autocomplete="username" required autofocus>
+        </label>
+
+        <label class="login-field" for="password">
+            Password
+            <input type="password" id="password" name="password" autocomplete="current-password" required>
+        </label>
+
+        <div class="login-actions">
+            <button type="submit">Sign in</button>
+            <button type="reset" class="secondary">Clear</button>
+        </div>
+    </form>
+
+    <div class="login-message" aria-live="polite">
+        <h2 class="err" th:if="${param.error}">Invalid user ID or password.</h2>
+        <h2 class="suc" th:if="${param.logout}">You have been logged out.</h2>
+    </div>
+
+</main>
+</body>
+</html>

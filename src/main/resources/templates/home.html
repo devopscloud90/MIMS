@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIMS Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body class="app-page">
+<div class="app-shell">
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-mark">M</span>
+            <span>Micro-Inventions Management System</span>
+        </div>
+        <nav class="top-nav">
+            <a th:href="@{/home}">Dashboard</a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="secondary">Logout</button>
+            </form>
+        </nav>
+    </header>
+
+    <main class="dashboard-shell">
+        <aside class="sidebar">
+            <h3>Navigation</h3>
+            <ul>
+                <li><a th:href="@{/api/inventions}">Inventions</a></li>
+                <li><a th:href="@{/api/reviews}">Reviews</a></li>
+                <li><a th:href="@{/api/requests}">Requests</a></li>
+                <li><a th:href="@{/api/queries}">Questions</a></li>
+                <li><a th:href="@{/api/opportunities}">Opportunities</a></li>
+            </ul>
+        </aside>
+
+        <section class="content-panel">
+            <p class="eyebrow">Welcome back</p>
+            <h1 th:text="|${userRole} ${userId}|">User</h1>
+            <p class="subtitle">Your workspace is ready for managing invention requests, reviews, and approvals.</p>
+
+            <div class="stats-grid">
+                <article class="stat-card">
+                    <h2>Pending</h2>
+                    <strong>—</strong>
+                </article>
+                <article class="stat-card">
+                    <h2>Approved</h2>
+                    <strong>—</strong>
+                </article>
+                <article class="stat-card">
+                    <h2>Reviews</h2>
+                    <strong>—</strong>
+                </article>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>
