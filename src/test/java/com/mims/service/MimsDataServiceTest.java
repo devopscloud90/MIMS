@@ -29,7 +29,7 @@ class MimsDataServiceTest {
     }
 
     @Test
-    void createsDomainWithAnOracleSequenceId() {
+    void createsDomainWithASequenceId() {
         Domain submitted = new Domain(null, "Biotechnology", "Research", null, null);
         Domain expected = new Domain(7L, "Biotechnology", "Research", null, null);
         when(repository.nextId("MIMS_DOMAINS_SEQ")).thenReturn(7L);
@@ -47,3 +47,4 @@ class MimsDataServiceTest {
                 () -> service.updateDomain(44L, new Domain(null, "Name", null, null, null)));
     }
 }
+

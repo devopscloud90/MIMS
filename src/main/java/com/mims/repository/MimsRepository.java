@@ -398,7 +398,7 @@ public class MimsRepository {
                 .contains(sequenceName)) {
             throw new IllegalArgumentException("Unknown identifier sequence");
         }
-        return jdbcTemplate.queryForObject("SELECT " + sequenceName + ".NEXTVAL FROM dual", Long.class);
+        return jdbcTemplate.queryForObject("SELECT nextval(CAST(? AS regclass))", Long.class, sequenceName);
     }
 
     private <T> Optional<T> queryOne(String sql, org.springframework.jdbc.core.RowMapper<T> mapper,
@@ -464,3 +464,4 @@ public class MimsRepository {
         return value == null ? 0 : value;
     }
 }
+
