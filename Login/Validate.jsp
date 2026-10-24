@@ -1,7 +1,7 @@
 <%@page session="false" language="java" import="mims.beans.UserBean,java.util.*" %>
 <%
   String button = request.getParameter("ok");
-  if("Login".equals(button)){
+  if("Login".equals(button) || "Sign in".equals(button)){
   String uid = request.getParameter("UserId");
   String pwd = request.getParameter("Password");
   ArrayList<String> list = UserBean.getObjectsByStatus("Active");

@@ -1,40 +1,31 @@
-<%@page session="false" import="java.util.Calendar,mims.beans.UserBean"%>
+<%@page session="false" import="mims.beans.UserBean"%>
 <%
- HttpSession session = request.getSession(false);
- if(session!=null)
- {
-  %>
-  <script type="text/javaScript1.2">
-   setInterval("settime()", 1000);
-   function settime () {
-    var curtime = new Date();
-    var curhour = curtime.getHours();
-    var curmin = curtime.getMinutes();
-    var cursec = curtime.getSeconds();
-    var time = ""; 
-    if(curhour == 0) curhour = 12;
-    time = (curhour > 12 ? curhour - 12 : curhour) + ":" + (curmin < 10 ? "0" : "") + curmin + ":" 
-		 +(cursec < 10 ? "0" : "") + cursec + " " + (curhour >= 12 ? "PM" : "AM");
-    document.getElementById('clock').value = time;
-   }
-  </script>
-  <table width="100%" border="0">
-   <tr>
-     <td width="88%" align="center">
-      <img src="/MIMS/Images/Title.jpg"/><br />
-      <%
-       String id = (String)session.getAttribute("id");
-       if(id!=null){
-	     UserBean user = new UserBean(id);
-         out.println("Logged in as <font class='user'>"+user.getName()+"</font>");
-       }
-	  %>
-     </td>
-     <td align="right">
-       <input type="text" class="user" id="clock" size="10" value="">
-       <br/>
-	   <a href="/MIMS/Login/Welcome.jsp" target="result">HOME</a> | <a href="/MIMS/Login/Logout.jsp">LOGOUT</a>
-     </td>
-   </tr>
-  </table>
- <%}%>
+  HttpSession session = request.getSession(false);
+  if(session!=null){
+    String id = (String)session.getAttribute("id");
+    String displayName = "";
+    if(id!=null){
+      UserBean user = new UserBean(id);
+      displayName = user.getName();
+      if(displayName==null){
+        displayName = "";
+      }
+      displayName = displayName.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;");
+    }
+    %>
+    <header class="app-header">
+      <a class="app-brand" href="/MIMS/Login/Welcome.jsp" target="result">
+        <span class="app-brand-mark" aria-hidden="true">M</span>
+        <span>MICRO-INVENTIONS<br>MANAGEMENT SYSTEM</span>
+      </a>
+      <div class="app-header-info">
+        <%if(!"".equals(displayName)){%>
+          <span>Signed in as <strong><%=displayName%></strong></span>
+        <%}%>
+        <div class="app-header-actions">
+          <a href="/MIMS/Login/Welcome.jsp" target="result">Home</a>
+          <a href="/MIMS/Login/Logout.jsp" target="_top">Log out</a>
+        </div>
+      </div>
+    </header>
+  <%}%>
