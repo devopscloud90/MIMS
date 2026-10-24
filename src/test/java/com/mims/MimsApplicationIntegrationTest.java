@@ -15,27 +15,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:h2:mem:mims;MODE=Oracle;DB_CLOSE_DELAY=-1",
-        "spring.datasource.username=sa",
-        "spring.datasource.password=",
-        "spring.datasource.driver-class-name=org.h2.Driver",
-        "spring.sql.init.mode=never"
-})
+@Testcontainers
 class MimsApplicationIntegrationTest {
+
+    @Container
+    static final PostgreSQLContainer<?> database = new PostgreSQLContainer<>("postgres:17-alpine");
+
+    @DynamicPropertySource
+    static void databaseProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", database::getJdbcUrl);
+        registry.add("spring.datasource.username", database::getUsername);
+        registry.add("spring.datasource.password", database::getPassword);
+    }
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private com.mims.repository.MimsRepository repository;
 
     @BeforeEach
     void seedAccount() {
@@ -54,21 +67,10 @@ class MimsApplicationIntegrationTest {
         jdbcTemplate.execute("DROP SEQUENCE IF EXISTS mims_queries_seq");
         jdbcTemplate.execute("DROP SEQUENCE IF EXISTS mims_opportunities_seq");
         jdbcTemplate.execute("DROP SEQUENCE IF EXISTS mims_users_seq");
-        jdbcTemplate.execute("CREATE TABLE domains (id BIGINT PRIMARY KEY, name VARCHAR(200) NOT NULL, description VARCHAR(4000), advisors_count BIGINT DEFAULT 0 NOT NULL, experts_count BIGINT DEFAULT 0 NOT NULL)");
-        jdbcTemplate.execute("CREATE TABLE userdetails (id BIGINT PRIMARY KEY, name VARCHAR(200) NOT NULL, phonenumber VARCHAR(30), mail_id VARCHAR(254), address VARCHAR(4000))");
-        jdbcTemplate.execute("CREATE TABLE logindetails (id BIGINT PRIMARY KEY, username VARCHAR(200) NOT NULL UNIQUE, password VARCHAR(4000) NOT NULL, initpassword VARCHAR(4000), keys VARCHAR(4000), usertype VARCHAR(30) NOT NULL, usertypeid BIGINT, startdate VARCHAR(20), enddate VARCHAR(20), status VARCHAR(20) NOT NULL)");
-        jdbcTemplate.execute("CREATE TABLE requests (id BIGINT PRIMARY KEY, name VARCHAR(200) NOT NULL, phonenumber VARCHAR(30), mail_id VARCHAR(254), address VARCHAR(4000), domainid BIGINT, reviewdate VARCHAR(20), reviewerid BIGINT, comments VARCHAR(4000), status VARCHAR(30), userid BIGINT)");
-        jdbcTemplate.execute("CREATE TABLE inventions (id BIGINT PRIMARY KEY, domainid BIGINT, title VARCHAR(500), thesis VARCHAR(4000), finaldoc VARCHAR(4000), registereddate VARCHAR(20), patentdate VARCHAR(20), status VARCHAR(30), userid BIGINT)");
-        jdbcTemplate.execute("CREATE TABLE reviews (id BIGINT PRIMARY KEY, inventionid BIGINT, reviewdate VARCHAR(20), reviewerid BIGINT, comments VARCHAR(4000))");
-        jdbcTemplate.execute("CREATE TABLE queries (id BIGINT PRIMARY KEY, inventionid BIGINT, query VARCHAR(4000), replyid BIGINT, reply VARCHAR(4000))");
-        jdbcTemplate.execute("CREATE TABLE opportuinities (id BIGINT PRIMARY KEY, domainid BIGINT, opportuinity VARCHAR(500), description VARCHAR(4000), status VARCHAR(30))");
-        jdbcTemplate.execute("CREATE SEQUENCE mims_domains_seq START WITH 1");
-        jdbcTemplate.execute("CREATE SEQUENCE mims_inventions_seq START WITH 1");
-        jdbcTemplate.execute("CREATE SEQUENCE mims_requests_seq START WITH 1");
-        jdbcTemplate.execute("CREATE SEQUENCE mims_reviews_seq START WITH 1");
-        jdbcTemplate.execute("CREATE SEQUENCE mims_queries_seq START WITH 1");
-        jdbcTemplate.execute("CREATE SEQUENCE mims_opportunities_seq START WITH 1");
-        jdbcTemplate.execute("CREATE SEQUENCE mims_users_seq START WITH 2");
+        new ResourceDatabasePopulator(new ClassPathResource("db/schema-postgresql.sql"))
+                .execute(jdbcTemplate.getDataSource());
+        jdbcTemplate.execute("ALTER SEQUENCE mims_users_seq RESTART WITH 2");
+        jdbcTemplate.execute("ALTER SEQUENCE mims_domains_seq RESTART WITH 2");
         jdbcTemplate.update("""
                 INSERT INTO domains (id, name, description, advisors_count, experts_count)
                 VALUES (1, 'Engineering', 'Engineering domain', 0, 0)
@@ -84,6 +86,29 @@ class MimsApplicationIntegrationTest {
                     (id, username, password, usertype, status)
                 VALUES (1, 'test-advisor', 'legacy-password', 'Advisor', 'Active')
                 """);
+    }
+
+    @Test
+    void postgresSequencesAllocateIdsAndRejectUnknownNames() {
+        for (String sequence : java.util.List.of("MIMS_USERS_SEQ", "MIMS_DOMAINS_SEQ",
+                "MIMS_INVENTIONS_SEQ", "MIMS_REQUESTS_SEQ", "MIMS_REVIEWS_SEQ",
+                "MIMS_QUERIES_SEQ", "MIMS_OPPORTUNITIES_SEQ")) {
+            long first = repository.nextId(sequence);
+            org.junit.jupiter.api.Assertions.assertEquals(first + 1, repository.nextId(sequence));
+        }
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> repository.nextId("unknown_sequence"));
+    }
+
+    @Test
+    void domainRoundTripPreservesEmptyStringsAndNullableFields() {
+        long id = repository.nextId("MIMS_DOMAINS_SEQ");
+        repository.insertDomain(new com.mims.model.Domain(id, "PostgreSQL", "", null, null));
+        org.junit.jupiter.api.Assertions.assertEquals("", repository.findDomain(id).orElseThrow().description());
+        repository.updateDomain(new com.mims.model.Domain(id, "Updated", null, 1L, 2L));
+        org.junit.jupiter.api.Assertions.assertNull(repository.findDomain(id).orElseThrow().description());
+        org.junit.jupiter.api.Assertions.assertEquals(1, repository.deleteDomain(id));
+        org.junit.jupiter.api.Assertions.assertTrue(repository.findDomain(id).isEmpty());
     }
 
     @Test
@@ -185,3 +210,4 @@ class MimsApplicationIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 }
+
