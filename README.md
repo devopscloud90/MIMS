@@ -51,17 +51,24 @@ must not be run against PostgreSQL.
 
 ### Verification
 
-Run `mvn clean verify` with Java 17+ and Docker available. Integration tests start
+Run `gradle clean build` with Gradle 8.14.x, Java 17+ and Docker available. Integration tests start
 an isolated PostgreSQL 17 container and apply the production PostgreSQL schema;
 they cover login/password upgrade, authorization, public request insertion,
 sequence allocation, and domain CRUD. No production database is used by tests.
 
 ### Build and run
 
-```powershell
-mvn clean verify
-java -jar target/mims-2.0.0-SNAPSHOT.jar
+Install Gradle 8.14.x and Java 17+; Maven is not required. Dependencies are
+resolved from Maven Central by Gradle. Docker is required for integration tests.
+A Gradle wrapper is not included, so use the installed `gradle` command.
+
+```sh
+gradle clean build
+java -jar build/libs/mims-2.0.0-SNAPSHOT.jar
 ```
+
+For development after configuring PostgreSQL, use `gradle bootRun`.
+The existing `pom.xml` remains available for older Maven-based workflows.
 
 Open http://localhost:9090/MIMS/login. The JAR contains embedded Tomcat; deploy it as a Java process/service rather than copying it to Tomcat's `webapps` directory.
 
